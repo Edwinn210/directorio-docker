@@ -1,3 +1,4 @@
+
 name: Docker Build CI
 
 on:
@@ -7,19 +8,47 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Construir imagen Node.js
-        uses: docker/build-push-action@v6
-        with:
-          context: ./app
-          push: false
-          tags: directorio-app:ci
+      - name: Preparar variables de entorno
+        run: cp .env.example .env
 
-      - name: Validar Docker Compose
+      - name: Validar configuración de Docker Compose
         run: docker compose config --quiet
+
+      - name: Descargar imagen oficial de MySQL
+        run: docker compose pull mysql
+
+      - name: Construir imagen de la aplicación
+        run: docker compose build app
+
+      - name: Levantar los dos contenedores
+        run: docker compose up -d --wait
+
+      - name: Probar el endpoint de salud
+        run: curl --fail http://localhost:3000/health
+
+      - name: Registrar una persona en MySQL
+        run: |
+          curl --fail --silent --show-error \
+            -X POST http://localhost:3000/personas \
+            -H "Content-Type: application/json" \
+            -d '{"nombre":"Prueba CI","ciudad":"Bucaramanga","telefono":"3000000099"}'
+
+      - name: Consultar la persona registrada
+        run: |
+          curl --fail --silent --show-error \
+            http://localhost:3000/personas/3000000099
+
+      - name: Mostrar estado de los contenedores
+        if: always()
+        run: docker compose ps
+
+      - name: Detener los servicios
+        if: always()
+        run: docker compose down -v
