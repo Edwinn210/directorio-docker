@@ -1,0 +1,25 @@
+name: Docker Build CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Construir imagen Node.js
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app
+          push: false
+          tags: directorio-app:ci
+
+      - name: Validar Docker Compose
+        run: docker compose config --quiet

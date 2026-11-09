@@ -1,0 +1,13 @@
+{
+  "name": "directorio-docker",
+  "version": "1.0.0",
+  "description": "API REST de directorio de personas con Node.js y MySQL",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "5.1.0",
+    "mysql2": "3.14.1"
+  }
+}
