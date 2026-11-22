@@ -47,6 +47,10 @@ EOF
                     # Levanta los dos contenedores y espera a que estén listos
                     docker compose up -d --wait
 
+                    # Aplica el esquema (tabla personas) porque el bind-mount
+                    # no es visible para el daemon de Docker en Jenkins-en-contenedor
+                    docker compose exec -T mysql sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" directorio' < database/init/01-schema.sql
+
                     # Verifica el endpoint de salud (desde el propio contenedor app)
                     docker compose exec -T app node -e 'fetch("http://localhost:3000/health").then(r => { console.log("health:", r.status); if (r.status !== 200) process.exit(1) })'
 
