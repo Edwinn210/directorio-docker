@@ -47,18 +47,14 @@ EOF
                     # Levanta los dos contenedores y espera a que estén listos
                     docker compose up -d --wait
 
-                    # Verifica que la aplicación responde
-                    curl --fail http://localhost:3000/health
+                    # Verifica el endpoint de salud (desde el propio contenedor app)
+                    docker compose exec -T app node -e 'fetch("http://localhost:3000/health").then(r => { console.log("health:", r.status); if (r.status !== 200) process.exit(1) })'
 
                     # Registra una persona (prueba de escritura en MySQL)
-                    curl --fail --silent --show-error \
-                      -X POST http://localhost:3000/personas \
-                      -H "Content-Type: application/json" \
-                      -d '{"nombre":"Prueba CI Jenkins","ciudad":"Saravena","telefono":"3000000099"}'
+                    docker compose exec -T app node -e 'fetch("http://localhost:3000/personas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: "Prueba CI Jenkins", ciudad: "Saravena", telefono: "3000000099" }) }).then(r => { console.log("POST:", r.status); if (r.status !== 201) process.exit(1) })'
 
                     # Consulta la persona registrada (prueba de lectura desde MySQL)
-                    curl --fail --silent --show-error \
-                      http://localhost:3000/personas/3000000099
+                    docker compose exec -T app node -e 'fetch("http://localhost:3000/personas/3000000099").then(r => { console.log("GET:", r.status); if (r.status !== 200) process.exit(1); return r.json() }).then(d => console.log(JSON.stringify(d)))'
                 '''
             }
         }
