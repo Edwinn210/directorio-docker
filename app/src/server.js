@@ -15,9 +15,9 @@ const pool = mysql.createPool({
 });
 
 app.get('/health', (req, res) => {
-  res.json({
-    estado: 'OK',
-    mensaje: 'Servidor Node.js funcionando'
+  res.status(500).json({
+    estado: 'ERROR',
+    mensaje: 'Fallo simulado para probar la integracion continua'
   });
 });
 
